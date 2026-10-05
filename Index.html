@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aesthetic About Me Grid Studio</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- html2canvas for High-Res PNG Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- Google Fonts for Aesthetic Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@300;400;500;600;700&family=Dancing+Script:wght@500;700&family=Space+Grotesk:wght@400;600&family=Cinzel:wght@500;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['Playfair Display', 'serif'],
+            sans: ['Inter', 'sans-serif'],
+            script: ['Dancing Script', 'cursive'],
+            y2k: ['Space Grotesk', 'sans-serif'],
+            cinzel: ['Cinzel', 'serif'],
+            typewriter: ['Courier Prime', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+
+    .grid-slot {
+      transition: border-color 0.2s ease-in-out;
+    }
+    .grid-slot:hover .slot-overlay {
+      opacity: 1;
+    }
+
+    /* Force full fill with zero letterboxing for all images */
+    .slot-img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      object-position: center center;
+      transition: transform 0.1s ease-out;
+    }
+
+    /* Preset Image Filters */
+    .filter-none { filter: none; }
+    .filter-vintage { filter: sepia(0.35) contrast(1.1) brightness(0.9) saturate(1.2); }
+    .filter-bw { filter: grayscale(1) contrast(1.2); }
+    .filter-warm { filter: sepia(0.25) saturate(1.4) hue-rotate(-10deg); }
+    .filter-glow { filter: brightness(1.15) contrast(0.95) saturate(1.1) drop-shadow(0 0 8px rgba(255,255,255,0.4)); }
+    .filter-cyber { filter: hue-rotate(140deg) saturate(1.8) contrast(1.2); }
+    .filter-film { filter: contrast(1.15) brightness(0.95) saturate(0.85); }
+
+    #export-canvas {
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    }
+  </style>
+</head>
+
+<body class="h-full text-slate-100 flex flex-col font-sans overflow-hidden bg-slate-950 select-none">
+
+  <header class="h-16 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-6 flex items-center justify-between shrink-0 z-30">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-violet-500/20">
+        <i class="fa-solid font-bold fa-border-all text-white text-lg"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-lg leading-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Grid Aesthetic Studio</h1>
+        <p class="text-xs text-slate-400">About Me Moodboard Generator</p>
+      </div>
+    </div>
+
+    <!-- Quick Action Controls -->
+    <div class="flex items-center space-x-3">
+      <button onclick="resetAllSlots()" class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition flex items-center space-x-2 border border-slate-700">
+        <i class="fa-solid fa-rotate-left"></i>
+        <span class="hidden sm:inline">Reset Grid</span>
+      </button>
+      <button onclick="downloadGrid()" class="px-5 py-2 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-500/25 transition flex items-center space-x-2">
+        <i class="fa-solid fa-download"></i>
+        <span>Export High-Res PNG</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- Left Control Panel Sidebar -->
+    <aside class="w-80 lg:w-96 border-r border-slate-800 bg-slate-900/60 backdrop-blur-xl flex flex-col shrink-0 overflow-y-auto">
+      <div class="p-5 space-y-6">
+
+        <!-- Accordion 1: Text & Header Info -->
+        <div class="space-y-3 bg-slate-800/40 p-4 rounded-xl border border-slate-800">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-300 uppercase tracking-wider">
+            <span class="flex items-center gap-2"><i class="fa-solid fa-signature text-violet-400"></i> Header Information</span>
+          </div>
+          <div class="space-y-2.5">
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">Display Name</label>
+              <input type="text" id="input-name" value="Name" oninput="updateHeaderDetails()" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-violet-500 transition">
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <label class="text-xs text-slate-400 block mb-1">Age</label>
+                <input type="text" id="input-age" value="Age" oninput="updateHeaderDetails()" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-violet-500 transition">
+              </div>
+              <div>
+                <label class="text-xs text-slate-400 block mb-1">Gender</label>
+                <input type="text" id="input-gender" value="Gender" oninput="updateHeaderDetails()" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-violet-500 transition">
+              </div>
+              <div>
+                <label class="text-xs text-slate-400 block mb-1">Date of Birth</label>
+                <input type="text" id="input-dob" value="DOB" oninput="updateHeaderDetails()" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-violet-500 transition">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion 2: Typography & Colors -->
+        <div class="space-y-3 bg-slate-800/40 p-4 rounded-xl border border-slate-800">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-300 uppercase tracking-wider">
+            <span class="flex items-center gap-2"><i class="fa-solid fa-font text-violet-400"></i> Typography & Styling</span>
+          </div>
+          <div class="space-y-3">
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">Title Font Family</label>
+              <select id="font-select" onchange="applyTypography()" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-violet-500">
+                <option value="font-serif">Playfair Serif (Classic Elegant)</option>
+                <option value="font-script">Dancing Script (Cursive / Handwritten)</option>
+                <option value="font-y2k">Space Grotesk (Modern Y2K)</option>
+                <option value="font-cinzel">Cinzel (Luxury Vintage)</option>
+                <option value="font-typewriter">Courier Prime (Typewriter Aesthetic)</option>
+                <option value="font-sans">Inter (Minimalist Clean)</option>
+              </select>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs text-slate-400 block mb-1">Text Color</label>
+                <div class="flex items-center gap-2">
+                  <input type="color" id="text-color-picker" value="#000000" oninput="applyTypography()" class="w-8 h-8 rounded border-0 bg-transparent cursor-pointer">
+                  <span id="text-color-hex" class="text-xs font-mono text-slate-400">#000000</span>
+                </div>
+              </div>
+              <div>
+                <label class="text-xs text-slate-400 block mb-1">Grid Border Color</label>
+                <div class="flex items-center gap-2">
+                  <input type="color" id="border-color-picker" value="#000000" oninput="applyBorderStyles()" class="w-8 h-8 rounded border-0 bg-transparent cursor-pointer">
+                  <span id="border-color-hex" class="text-xs font-mono text-slate-400">#000000</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion 3: Photo Fine-Tuning Controls -->
+        <div class="space-y-3 bg-slate-800/40 p-4 rounded-xl border border-slate-800">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-300 uppercase tracking-wider">
+            <span class="flex items-center gap-2"><i class="fa-solid fa-up-right-and-down-left-from-center text-violet-400"></i> Active Image Fit & Zoom</span>
+          </div>
+
+          <div class="space-y-3">
+            <p id="active-slot-indicator" class="text-xs text-slate-400 italic">Click any slot image to adjust its zoom and alignment inside the square.</p>
+            
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">Zoom Level: <span id="zoom-label">1.0x</span></label>
+              <input type="range" id="zoom-slider" min="1" max="2.5" step="0.05" value="1" oninput="adjustSelectedSlotImage()" class="w-full accent-violet-500 bg-slate-900 rounded-lg h-1.5 cursor-pointer">
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">Horizontal Position (X)</label>
+              <input type="range" id="pos-x-slider" min="0" max="100" step="1" value="50" oninput="adjustSelectedSlotImage()" class="w-full accent-violet-500 bg-slate-900 rounded-lg h-1.5 cursor-pointer">
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">Vertical Position (Y)</label>
+              <input type="range" id="pos-y-slider" min="0" max="100" step="1" value="50" oninput="adjustSelectedSlotImage()" class="w-full accent-violet-500 bg-slate-900 rounded-lg h-1.5 cursor-pointer">
+            </div>
+
+            <button onclick="resetImageTransform()" class="w-full py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs text-slate-300 rounded transition">
+              Reset Zoom & Alignment
+            </button>
+          </div>
+        </div>
+
+        <!-- Accordion 4: Canvas Background & Aesthetics -->
+        <div class="space-y-3 bg-slate-800/40 p-4 rounded-xl border border-slate-800">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-300 uppercase tracking-wider">
+            <span class="flex items-center gap-2"><i class="fa-solid fa-palette text-violet-400"></i> Background & Aesthetics</span>
+          </div>
+          
+          <div class="grid grid-cols-5 gap-2">
+            <button onclick="setBgPreset('white')" title="Pure White" class="w-full aspect-square rounded-lg bg-white border border-slate-600 hover:scale-105 transition"></button>
+            <button onclick="setBgPreset('cream')" title="Aesthetic Cream" class="w-full aspect-square rounded-lg bg-[#FAF7F2] border border-slate-600 hover:scale-105 transition"></button>
+            <button onclick="setBgPreset('pastel-pink')" title="Pastel Blush" class="w-full aspect-square rounded-lg bg-[#FDE2E4] border border-slate-600 hover:scale-105 transition"></button>
+            <button onclick="setBgPreset('pastel-blue')" title="Soft Lavender Blue" class="w-full aspect-square rounded-lg bg-[#E2ECE9] border border-slate-600 hover:scale-105 transition"></button>
+            <button onclick="setBgPreset('dark')" title="Midnight Dark" class="w-full aspect-square rounded-lg bg-[#111827] border border-slate-600 hover:scale-105 transition"></button>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 pt-1">
+            <button onclick="setBgPreset('grad-sunset')" class="h-8 rounded-lg bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 text-[10px] font-medium text-slate-800 border border-slate-700">Sunset</button>
+            <button onclick="setBgPreset('grad-matcha')" class="h-8 rounded-lg bg-gradient-to-r from-emerald-100 to-teal-200 text-[10px] font-medium text-slate-800 border border-slate-700">Matcha</button>
+            <button onclick="setBgPreset('grad-y2k')" class="h-8 rounded-lg bg-gradient-to-r from-fuchsia-200 to-cyan-200 text-[10px] font-medium text-slate-800 border border-slate-700">Aesthetic Y2K</button>
+          </div>
+
+          <div class="pt-2">
+            <label class="text-xs text-slate-400 block mb-1">Global Image Filter Preset</label>
+            <select id="global-filter-select" onchange="applyGlobalFilter()" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-violet-500">
+              <option value="filter-none">Original (No Filter)</option>
+              <option value="filter-vintage">Vintage Film / Retro</option>
+              <option value="filter-bw">Black & White Noir</option>
+              <option value="filter-warm">Warm Summer Glow</option>
+              <option value="filter-glow">Soft Dreamy Glow</option>
+              <option value="filter-cyber">Cyberpunk Vibrant</option>
+              <option value="filter-film">Analog Film Grain Style</option>
+            </select>
+          </div>
+
+          <div class="pt-2">
+            <label class="text-xs text-slate-400 block mb-1">Grid Border Width: <span id="border-width-label">1.5px</span></label>
+            <input type="range" id="border-width-slider" min="0.5" max="5" step="0.5" value="1.5" oninput="applyBorderStyles()" class="w-full accent-violet-500 bg-slate-900 rounded-lg h-1.5 cursor-pointer">
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <main class="flex-1 bg-slate-950 p-4 md:p-8 flex items-center justify-center overflow-auto relative">
+      
+      <!-- Hidden File Input for Image Uploads -->
+      <input type="file" id="slot-file-input" accept="image/*" class="hidden" onchange="handleSlotImageUpload(event)">
+
+      <div class="relative max-w-full">
+        <!-- Printable Canvas -->
+        <div id="export-canvas" class="w-[500px] sm:w-[580px] md:w-[620px] aspect-[4/4.8] bg-white text-black p-8 sm:p-10 flex flex-col justify-between transition-all duration-300 relative overflow-hidden" style="border-radius: 0px;">
+          
+          <div id="canvas-bg-overlay" class="absolute inset-0 bg-cover bg-center pointer-events-none z-0"></div>
+
+          <div class="relative z-10 flex flex-col h-full justify-between">
+
+            <!-- Top Header Section -->
+            <div id="canvas-header" class="text-left mb-4">
+              <div id="display-name" class="font-serif text-5xl sm:text-6xl font-normal tracking-tight cursor-pointer hover:opacity-80 transition italic mb-2" onclick="focusInput('input-name')">
+                Name
+              </div>
+              
+              <div id="display-subtext" class="flex items-center space-x-6 text-sm sm:text-base font-normal tracking-wide opacity-90">
+                <span id="display-age" onclick="focusInput('input-age')" class="cursor-pointer">Age</span>
+                <span id="display-gender" onclick="focusInput('input-gender')" class="cursor-pointer">Gender</span>
+                <span id="display-zodiac" onclick="focusInput('input-zodiac')" class="cursor-pointer">Zodiac</span>
+              </div>
+            </div>
+
+            <!-- The Grid Container (12 outer squares + center profile slot) -->
+            <div id="grid-container" class="grid grid-cols-4 grid-rows-4 w-full aspect-square border-black border-collapse" style="border-width: 1.5px;">
+              
+              <!-- SLOT 1: mbti -->
+              <div class="grid-slot relative border-black flex items-center justify-center overflow-hidden cursor-pointer group" style="border-width: 1.5px;" data-slot-id="mbti" onclick="triggerSlotUpload('mbti')">
+                <span class="slot-label text-sm sm:text-base font-normal text-slate-800 pointer-events-none lowercase">mbti</span>
+                <img class="slot-img absolute inset-0 w-full h-full object-cover hidden" alt="mbti">
+                <div class="slot-overlay absolute inset-0 bg-black/40 opacity-0 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-camera text-white text-sm"></i>
+                  <button onclick="clearSlot('mbti', event)" class="w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <!-- SLOT 2: food -->
+              <div class="grid-slot relative border-black flex items-center justify-center overflow-hidden cursor-pointer group" style="border-width: 1.5px;" data-slot-id="food" onclick="triggerSlotUpload('food')">
+                <span class="slot-label text-sm sm:text-base font-normal text-slate-800 pointer-events-none lowercase">food</span>
+                <img class="slot-img absolute inset-0 w-full h-full object-cover hidden" alt="food">
+                <div class="slot-overlay absolute inset-0 bg-black/40 opacity-0 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-camera text-white text-sm"></i>
+                  <button onclick="clearSlot('food', event)" class="w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <!-- SLOT 3: Character -->
+              <div class="grid-slot relative border-black flex items-center justify-center overflow-hidden cursor-pointer group" style="border-width: 1.5px;" data-slot-id="character" onclick="triggerSlotUpload('character')">
+                <span class="slot-label text-sm sm:text-base font-normal text-slate-800 pointer-events-none capitalize">Character</span>
+                <img class="slot-img absolute inset-0 w-full h-full object-cover hidden" alt="Character">
+                <div class="slot-overlay absolute inset-0 bg-black/40 opacity-0 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-camera text-white text-sm"></i>
+                  <button onclick="clearSlot('character', event)" class="w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <!-- SLOT 4: color -->
+              <div class="grid-slot relative border-black flex items-center justify-center overflow-hidden cursor-pointer group" style="border-width: 1.5px;" data-slot-id="color" onclick="triggerSlotUpload('color')">
+                <span class="slot-label text-sm sm:text-base font-normal text-slate-800 pointer-events-none lowercase">color</span>
+                <img class="slot-img absolute inset-0 w-full h-full object-cover hidden" alt="color">
+                <div class="slot-overlay absolute inset-0 bg-black/40 opacity-0 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-camera text-white text-sm"></i>
+                  <button onclick="clearSlot('color', event)" class="w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <!-- SLOT 5: place -->
+              <div class="grid-slot relative border-black flex items-center justify-center overflow-hidden cursor-pointer group" style="border-width: 1.5px;" data-slot-id="place" onclick="triggerSlotUpload('place')">
+                <span class="slot-label text-sm sm:text-base font-normal text-slate-800 pointer-events-none lowercase">place</span>
+                <img class="slot-img absolute inset-0 w-full h-full object-cover hidden" alt="place">
+                <div class="slot-overlay absolute inset-0 bg-black/40 opacity-0 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-camera text-white text-sm"></i>
+                  <button onclick="clearSlot('place', event)" class="w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <!-- CENTER PROFILE PICTURE SLOT (2x2 Span) -->
+              <div class="grid-slot col-span-2 row-span-2 relative border-black flex items-center justify-center overflow-hidden cursor-pointer group bg-slate-50/20" style="border-width: 1.5px;" data-slot-id="profile" onclick="triggerSlotUpload('profile')">
+                <div class="slot-label flex flex-col items-center justify-center text-slate-400 group-hover:text-slate-600 transition">
+                  <i class="fa-regular fa-image text-2xl mb-1"></i>
+                  <span class="text-xs sm:text-sm font-medium uppercase tracking-wider">Profile Pic</span>
+                </div>
+                <img class="slot-img absolute inset-0 w-full h-full object-cover hidden" alt="Profile Picture">
+                <div class="slot-overlay absolute inset-0 bg-black/40 opacity-0 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-camera text-white text-lg"></i>
+                  <button onclick="clearSlot('profile', event)" class="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-sm shadow-md"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <!-- SLOT 6: season -->
+              <div class="grid-slot relative border-black flex items-center justify-center overflow-hidden cursor-pointer group" style="border-width: 1.5px;" data-slot-id="season" onclick="triggerSlotUpload('season')">
+                <span class="slot-label text-sm sm:text-base font-normal text-slate-800 pointer-events-none lowercase">season</span>
+                <img class="slot-img absolute inset-0 w-full h-full object-cover hidden" alt="season">
+                <div class="slot-overlay absolute inset-0 bg-black/40 opacity-0 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-camera text-white text-sm"></i>
+                  <button onclick="clearSlot('season', event)" class="w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <!-- SLOT 7: hobby -->
+              <div class="grid-slot relative border-black flex items-center justify-center overflow-hidden cursor-pointer group" style="border-width: 1.5px;" data-slot-id="hobby" onclick="triggerSlotUpload('hobby')">
+                <span class="slot-label text-sm sm:text-base font-normal text-slate-800 pointer-events-none lowercase">hobby</span>
+                <img class="slot-img absolute inset-0 w-full h-full object-cover hidden" alt="hobby">
+                <div class="slot-overlay absolute inset-0 bg-black/40 opacity-0 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-camera text-white text-sm"></i>
+                  <button onclick="clearSlot('hobby', event)" class="w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <!-- SLOT 8: music -->
+              <div class="grid-slot relative border-black flex items-center justify-center overflow-hidden cursor-pointer group" style="border-width: 1.5px;" data-slot-id="music" onclick="triggerSlotUpload('music')">
+                <span class="slot-label text-sm sm:text-base font-normal text-slate-800 pointer-events-none lowercase">music</span>
+                <img class="slot-img absolute inset-0 w-full h-full object-cover hidden" alt="music">
+                <div class="slot-overlay absolute inset-0 bg-black/40 opacity-0 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-camera text-white text-sm"></i>
+                  <button onclick="clearSlot('music', event)" class="w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <!-- SLOT 9: career path -->
+              <div class="grid-slot relative border-black flex items-center justify-center overflow-hidden cursor-pointer group text-center px-1" style="border-width: 1.5px;" data-slot-id="career" onclick="triggerSlotUpload('career')">
+                <span class="slot-label text-xs sm:text-sm font-normal text-slate-800 pointer-events-none leading-tight">career<br>path</span>
+                <img class="slot-img absolute inset-0 w-full h-full object-cover hidden" alt="career path">
+                <div class="slot-overlay absolute inset-0 bg-black/40 opacity-0 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-camera text-white text-sm"></i>
+                  <button onclick="clearSlot('career', event)" class="w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <!-- SLOT 10: flower -->
+              <div class="grid-slot relative border-black flex items-center justify-center overflow-hidden cursor-pointer group" style="border-width: 1.5px;" data-slot-id="flower" onclick="triggerSlotUpload('flower')">
+                <span class="slot-label text-sm sm:text-base font-normal text-slate-800 pointer-events-none lowercase">flower</span>
+                <img class="slot-img absolute inset-0 w-full h-full object-cover hidden" alt="flower">
+                <div class="slot-overlay absolute inset-0 bg-black/40 opacity-0 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-camera text-white text-sm"></i>
+                  <button onclick="clearSlot('flower', event)" class="w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <!-- SLOT 11: animal -->
+              <div class="grid-slot relative border-black flex items-center justify-center overflow-hidden cursor-pointer group" style="border-width: 1.5px;" data-slot-id="animal" onclick="triggerSlotUpload('animal')">
+                <span class="slot-label text-sm sm:text-base font-normal text-slate-800 pointer-events-none lowercase">animal</span>
+                <img class="slot-img absolute inset-0 w-full h-full object-cover hidden" alt="animal">
+                <div class="slot-overlay absolute inset-0 bg-black/40 opacity-0 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-camera text-white text-sm"></i>
+                  <button onclick="clearSlot('animal', event)" class="w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <!-- SLOT 12: fav app or game -->
+              <div class="grid-slot relative border-black flex items-center justify-center overflow-hidden cursor-pointer group text-center px-1" style="border-width: 1.5px;" data-slot-id="favapp" onclick="triggerSlotUpload('favapp')">
+                <span class="slot-label text-xs sm:text-sm font-normal text-slate-800 pointer-events-none leading-tight">fav app<br>or game</span>
+                <img class="slot-img absolute inset-0 w-full h-full object-cover hidden" alt="fav app or game">
+                <div class="slot-overlay absolute inset-0 bg-black/40 opacity-0 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-camera text-white text-sm"></i>
+                  <button onclick="clearSlot('favapp', event)" class="w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+  <script>
+    let activeSlotId = null;
+    let selectedSlotId = null;
+
+    // Track zoom and alignment transformations per slot
+    const slotTransforms = {};
+
+    window.addEventListener('DOMContentLoaded', () => {
+      setupDragAndDrop();
+      showToast('Every photo now automatically fills 100% of its square!');
+    });
+
+    function updateHeaderDetails() {
+      const name = document.getElementById('input-name').value || 'Name';
+      const age = document.getElementById('input-age').value || 'Age';
+      const gender = document.getElementById('input-gender').value || 'Gender';
+      const zodiac = document.getElementById('input-zodiac').value || 'Zodiac';
+
+      document.getElementById('display-name').innerText = name;
+      document.getElementById('display-age').innerText = age;
+      document.getElementById('display-gender').innerText = gender;
+      document.getElementById('display-zodiac').innerText = zodiac;
+    }
+
+    function focusInput(inputId) {
+      document.getElementById(inputId).focus();
+    }
+
+    function applyTypography() {
+      const fontClass = document.getElementById('font-select').value;
+      const color = document.getElementById('text-color-picker').value;
+
+      document.getElementById('text-color-hex').innerText = color.toUpperCase();
+      const nameEl = document.getElementById('display-name');
+
+      nameEl.className = `${fontClass} text-5xl sm:text-6xl font-normal tracking-tight cursor-pointer hover:opacity-80 transition italic mb-2`;
+      document.getElementById('canvas-header').style.color = color;
+    }
+
+    function applyBorderStyles() {
+      const borderColor = document.getElementById('border-color-picker').value;
+      const borderWidth = document.getElementById('border-width-slider').value;
+
+      document.getElementById('border-color-hex').innerText = borderColor.toUpperCase();
+      document.getElementById('border-width-label').innerText = `${borderWidth}px`;
+
+      const gridContainer = document.getElementById('grid-container');
+      const slots = document.querySelectorAll('.grid-slot');
+
+      gridContainer.style.borderColor = borderColor;
+      gridContainer.style.borderWidth = `${borderWidth}px`;
+
+      slots.forEach(slot => {
+        slot.style.borderColor = borderColor;
+        slot.style.borderWidth = `${borderWidth}px`;
+      });
+    }
+
+    function setBgPreset(type) {
+      const canvas = document.getElementById('export-canvas');
+      const overlay = document.getElementById('canvas-bg-overlay');
+
+      overlay.style.backgroundImage = 'none';
+
+      switch (type) {
+        case 'white':
+          canvas.style.background = '#ffffff';
+          break;
+        case 'cream':
+          canvas.style.background = '#FAF7F2';
+          break;
+        case 'pastel-pink':
+          canvas.style.background = '#FDE2E4';
+          break;
+        case 'pastel-blue':
+          canvas.style.background = '#E2ECE9';
+          break;
+        case 'dark':
+          canvas.style.background = '#111827';
+          break;
+        case 'grad-sunset':
+          canvas.style.background = 'linear-gradient(135deg, #fbcfe8 0%, #e9d5ff 50%, #c7d2fe 100%)';
+          break;
+        case 'grad-matcha':
+          canvas.style.background = 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)';
+          break;
+        case 'grad-y2k':
+          canvas.style.background = 'linear-gradient(135deg, #f5d0fe 0%, #cffafe 100%)';
+          break;
+      }
+    }
+
+    function triggerSlotUpload(slotId) {
+      activeSlotId = slotId;
+      selectSlotForEditing(slotId);
+      document.getElementById('slot-file-input').click();
+    }
+
+    function selectSlotForEditing(slotId) {
+      selectedSlotId = slotId;
+      document.getElementById('active-slot-indicator').innerText = `Editing slot: [${slotId.toUpperCase()}]`;
+
+      // Sync slider UI controls to active slot values
+      if (!slotTransforms[slotId]) {
+        slotTransforms[slotId] = { scale: 1, posX: 50, posY: 50 };
+      }
+
+      document.getElementById('zoom-slider').value = slotTransforms[slotId].scale;
+      document.getElementById('zoom-label').innerText = `${slotTransforms[slotId].scale}x`;
+      document.getElementById('pos-x-slider').value = slotTransforms[slotId].posX;
+      document.getElementById('pos-y-slider').value = slotTransforms[slotId].posY;
+    }
+
+    function handleSlotImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file || !activeSlotId) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const slot = document.querySelector(`.grid-slot[data-slot-id="${activeSlotId}"]`);
+        if (slot) {
+          const img = slot.querySelector('.slot-img');
+          const label = slot.querySelector('.slot-label');
+
+          img.src = e.target.result;
+          img.classList.remove('hidden');
+
+          // Ensure 100% full square cover with zero gaps
+          img.style.width = '100%';
+          img.style.height = '100%';
+          img.style.objectFit = 'cover';
+          img.style.objectPosition = 'center center';
+
+          // Initialize transform state
+          slotTransforms[activeSlotId] = { scale: 1, posX: 50, posY: 50 };
+          applySlotTransform(activeSlotId);
+
+          if (label) {
+            label.classList.add('opacity-0');
+          }
+        }
+        event.target.value = '';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function adjustSelectedSlotImage() {
+      if (!selectedSlotId) return;
+
+      const zoomVal = parseFloat(document.getElementById('zoom-slider').value);
+      const posXVal = parseInt(document.getElementById('pos-x-slider').value);
+      const posYVal = parseInt(document.getElementById('pos-y-slider').value);
+
+      document.getElementById('zoom-label').innerText = `${zoomVal.toFixed(2)}x`;
+
+      slotTransforms[selectedSlotId] = {
+        scale: zoomVal,
+        posX: posXVal,
+        posY: posYVal
+      };
+
+      applySlotTransform(selectedSlotId);
+    }
+
+    function applySlotTransform(slotId) {
+      const slot = document.querySelector(`.grid-slot[data-slot-id="${slotId}"]`);
+      if (!slot) return;
+
+      const img = slot.querySelector('.slot-img');
+      const tf = slotTransforms[slotId] || { scale: 1, posX: 50, posY: 50 };
+
+      if (img) {
+        img.style.transform = `scale(${tf.scale})`;
+        img.style.objectPosition = `${tf.posX}% ${tf.posY}%`;
+      }
+    }
+
+    function resetImageTransform() {
+      if (!selectedSlotId) return;
+      slotTransforms[selectedSlotId] = { scale: 1, posX: 50, posY: 50 };
+      
+      document.getElementById('zoom-slider').value = 1;
+      document.getElementById('zoom-label').innerText = '1.0x';
+      document.getElementById('pos-x-slider').value = 50;
+      document.getElementById('pos-y-slider').value = 50;
+
+      applySlotTransform(selectedSlotId);
+    }
+
+    function clearSlot(slotId, event) {
+      event.stopPropagation();
+      const slot = document.querySelector(`.grid-slot[data-slot-id="${slotId}"]`);
+      if (slot) {
+        const img = slot.querySelector('.slot-img');
+        const label = slot.querySelector('.slot-label');
+
+        img.src = '';
+        img.classList.add('hidden');
+
+        if (label) {
+          label.classList.remove('opacity-0');
+        }
+      }
+    }
+
+    function resetAllSlots() {
+      const slots = document.querySelectorAll('.grid-slot');
+      slots.forEach(slot => {
+        const img = slot.querySelector('.slot-img');
+        const label = slot.querySelector('.slot-label');
+        if (img) {
+          img.src = '';
+          img.classList.add('hidden');
+        }
+        if (label) {
+          label.classList.remove('opacity-0');
+        }
+      });
+      showToast('Grid cleared!');
+    }
+
+    function applyGlobalFilter() {
+      const filterClass = document.getElementById('global-filter-select').value;
+      const images = document.querySelectorAll('.slot-img');
+
+      images.forEach(img => {
+        img.className = img.className.replace(/filter-[a-z]+/g, '');
+        img.classList.add(filterClass);
+      });
+    }
+
+    function setupDragAndDrop() {
+      const slots = document.querySelectorAll('.grid-slot');
+
+      slots.forEach(slot => {
+        slot.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          slot.classList.add('ring-2', 'ring-violet-500');
+        });
+
+        slot.addEventListener('dragleave', () => {
+          slot.classList.remove('ring-2', 'ring-violet-500');
+        });
+
+        slot.addEventListener('drop', (e) => {
+          e.preventDefault();
+          slot.classList.remove('ring-2', 'ring-violet-500');
+
+          const files = e.dataTransfer.files;
+          if (files.length > 0 && files[0].type.startsWith('image/')) {
+            activeSlotId = slot.getAttribute('data-slot-id');
+            selectSlotForEditing(activeSlotId);
+            const fakeEvent = { target: { files: files } };
+            handleSlotImageUpload(fakeEvent);
+          }
+        });
+      });
+    }
+
+    function downloadGrid() {
+      showToast('Generating high-res image...');
+
+      const exportArea = document.getElementById('export-canvas');
+      const overlays = document.querySelectorAll('.slot-overlay');
+      overlays.forEach(o => o.style.display = 'none');
+
+      html2canvas(exportArea, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: null,
+        logging: false
+      }).then(canvas => {
+        overlays.forEach(o => o.style.display = '');
+
+        const link = document.createElement('a');
+        const nameVal = document.getElementById('input-name').value || 'about-me';
+        link.download = `${nameVal.toLowerCase().replace(/\s+/g, '-')}-about-me-grid.png`;
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+
+        showToast('Export complete! 🎉');
+      }).catch(err => {
+        overlays.forEach(o => o.style.display = '');
+        showToast('Error exporting image.');
+        console.error(err);
+      });
+    }
+
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'bg-slate-800 text-white border border-slate-700 px-4 py-2.5 rounded-xl shadow-xl text-xs font-medium flex items-center space-x-2 transition-all duration-300 transform translate-y-2 opacity-0';
+      toast.innerHTML = `<i class="fa-solid fa-circle-info text-violet-400"></i><span>${message}</span>`;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 50);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+  </script>
+</body>
+</html>
